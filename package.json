@@ -1,0 +1,22 @@
+{
+  "name": "ezchain",
+  "version": "0.1.0",
+  "description": "Easy, quick way to making your existing methods on your object chainable in series",
+  "main": "ezchain.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dvpxl/ezchain.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dvpxl/ezchain/issues"
+  },
+  "homepage": "https://github.com/dvpxl/ezchain#readme",
+  "dependencies": {
+    "promise": "^7.1.1"
+  }
+}
