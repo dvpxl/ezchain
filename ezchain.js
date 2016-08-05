@@ -1,62 +1,5 @@
 var Promise = require('promise');
 
-//foo object
-var Foo = function() {
-
-	var a = 1;
-
-}
-
-/**
-* We build some prototype methods for chaining.
-* It is expected that these are not modified.
-*/
-
-Foo.prototype.methodA = function(callback) {
-	console.log(">>>Called methodA", this);
-	var that = this; 
-	setTimeout(function(){
-		that.a++;
-		callback();
-		console.log(">>>finishedA ... calling callback", that.a);
-
-	}, 2000);
-}
-
-Foo.prototype.methodB = function(callback) {
-    console.log(">>>Called methodB", this);
-    var that = this;
-	setTimeout(function(){
-		that.a++;
-		callback();
-		console.log(">>>finishedB ... calling callback", that.a);
-
-	}, 2000);
-
-}
-
-Foo.prototype.methodC = function(callback) {
-    console.log(">>>Called methodC", this);
-	var that = this;
-	setTimeout(function(){
-		that.a++;
-		callback({'data': '1'}, {'data': '2'});
-		console.log(">>>finishedC ... calling callback", that.a);
-
-	}, 2000);
-
-}
-
-
-
-/**
-* Instantiate a few objects
-*/ 
-
-var foo = new Foo();
-var foo2 = new Foo();
-
-
 /**
 * JSChain API
 * 
@@ -134,25 +77,20 @@ var foo2 = new Foo();
 *
 */
 
-var JSChain = (obj, arrayPrototypeNames) => {
+module.exports = EZChain;
 
+var EZChain = (obj, arrayPrototypeNames) => {
 	arrayPrototypeNames = arrayPrototypeNames || 'default';
-
 	if(obj === null || obj === undefined) {
-
 		throw Error('Missing parameter when classing jsPrototypeChain');
 	}
 
 	if(typeof obj !== 'object') {
-
 		throw Error('Must pass in an object when calling jsPrototypeChain');
-
 	}
 
 	if(arrayPrototypeNames !== 'default' && !(typeof Array.isArray(arrayPrototypeNames))) {
-
 		throw Error('Optional parameter of type: ' + typeof arrayPrototypeNames + ' is not an array');
-
 	}
 
 
@@ -162,89 +100,56 @@ var JSChain = (obj, arrayPrototypeNames) => {
 	var chainIndex = 0;
 
 	/* 
-	* 
+	* TODO: 
 	*/
 	function __chainMethods(arrayPrototypeNames) {
-
-		// console.info("Class: ", prototype);
-		// console.info("Object:", obj);
-
 		if(arrayPrototypeNames === 'default') {
-				
-			
 			Object.keys(prototype).forEach((method, idx) => {
-    
-			    //chaining
 			    console.info("chaining method:", method);
-
-			    //selectively chain or chain everything
 			    __prototypeWrapper(method);
-		    
 		    
 			});
 
 		}
-
 		else {
-
 			arrayPrototypeNames.forEach((method, idx) => {
 
 				__prototypeWrapper(method);
 
 			})
-			
 		}
-
 	}
 
 	/*
-	*
+	* TODO
 	*/
 	function __prototypeWrapper(name) {
 
 		var method = obj[name];
-		//console.info(">>>wrapping name: ", name);
-
 		obj[name] = function(callback) {
-
-			console.info(">>>invoked method: ", name);
-			
 			var that = this;
-
 			var promise = new Promise(function(resolve, reject){
-
 				resolve();
-				
 			});
 
 			var callbackWrapper =  function(){
 
-				console.info("callback wrapper", that);
 				var callbackContext = callback;
-
 				(callbackContext)? callbackContext.apply(that, arguments): function() {}
-
 				promise.then(__onPromise());
-
 			}
 
 			var invokedMethod = function(){
-
 				method.call(that, callbackWrapper)
-
 			}
 			
 			var stackObject = {
-
 				'promise': promise, 
 				'invokedMethod': invokedMethod
 			}
 
 			chainStack.push(stackObject);
 
-			console.info(chainStack);
-
-			//bootstrap and run if it is the first one loaded onto stack
 			if(chainIndex == 0) {
 				chainIndex = 1;
 				console.info("index incremented:", chainIndex);
@@ -262,18 +167,13 @@ var JSChain = (obj, arrayPrototypeNames) => {
 	*/
 	function __onPromise() {
 
-		console.info(">>promise complete: ", chainStack);
-
 		if(chainIndex < chainStack.length) {
 			chainStack[chainIndex]['invokedMethod']();
 			chainIndex++;
 		}
-		else {
-			
-			//cleanup
-			chainIndex = 0;
-
+		else {	
 			//implicit garbage collect?
+			chainIndex = 0;	
 			chainStack = null; 
 			chainStack = [];
 		}
@@ -281,41 +181,6 @@ var JSChain = (obj, arrayPrototypeNames) => {
 	}
 
 	return {
-
 		serial: serial 
-
 	}
 }
-
-// new JSChain(foo, ['methodA', 'methodB']);
-// new JSChain(foo2);
-
-JSChain(foo).serial();
-JSChain(foo2).serial();
-
-
-
-/* 
-* quick testing
-*/
-
-foo.a = 1;
-foo2.a = 100;
-foo.methodA().methodA().methodA();
-foo2.methodC().methodC().methodC();
-
-setTimeout(function(){
-
-  console.log("\n\n=================RESET and holding for 10 sec...")  
-  console.log(">>>>RUNNING NEW");
-  foo.methodA().methodB().methodC(function(data){
-
-  	 console.log("REQUIRED CALLBACK with data: ", arguments);
-  });
-
-}, 12000)
-
-
-
-
-
